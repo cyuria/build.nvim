@@ -125,9 +125,8 @@ Please feel free to submit any PRs or issues, especially if they add support for
 more build systems. It would be great if we could support every build system
 under the sun.
 
-If anyone knows how these build systems work, that would be great, literally
-just add the relevant entries from the `extra_indicators` and `extra_programs`
-sections of your own configuration to
+To add a build system just add the relevant entries from the `extra_indicators`
+and `extra_programs` sections of your own configuration to
 [lua/build/systems.lua](lua/build/systems.lua)
 
 - build2
