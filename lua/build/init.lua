@@ -141,7 +141,7 @@ function M.setup(user_opts)
 
     vim.api.nvim_create_user_command("SetMakeprg", function (_)
         M.set_makeprg()
-    end, { nargs = "0" })
+    end, { nargs = 0 })
     vim.api.nvim_create_user_command("SetBuildDir", function (info)
         if info.nargs > 2 then
             print("Too many arguments passed to command", info.name)
