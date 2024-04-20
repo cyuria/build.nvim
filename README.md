@@ -121,7 +121,7 @@ local build = require('build')
 
 ## Contributing
 
-Please feel free to add any PRs or issues, especially if they add support for
+Please feel free to submit any PRs or issues, especially if they add support for
 more build systems. It would be great if we could support every build system
 under the sun.
 
