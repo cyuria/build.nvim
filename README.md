@@ -119,3 +119,20 @@ local build = require('build')
     Optionally specify a project root for the given build directory, the
     existence of the root directory is not checked either.
 
+## Contributing
+
+Please feel free to add any PRs or issues, especially if they add support for
+more build systems. It would be great if we could support every build system
+under the sun.
+
+If anyone knows how these build systems work, that would be great, literally
+just add the relevant entries from the `extra_indicators` and `extra_programs`
+sections of your own configuration to
+[lua/build/systems.lua](lua/build/systems.lua)
+
+- build2
+- Maven or Gradle or something java I don't know
+- Bazel
+- Better support for the different variations of Make (i.e. GNU make vs BSD
+  make vs NMake etc)
+
