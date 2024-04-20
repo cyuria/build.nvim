@@ -110,10 +110,10 @@ local opts = {
 local build = require('build')
 ```
 
-- `:SetMakeprg`/`buildsystem.set_makeprg()`
+- `:SetMakeprg`/`build.set_makeprg()`
   - Updates and sets the `makeprg` variable. Nothing will happen if no build
     system has been detected.
-- `:SetBuildDir directory`/`buildsystem.set_build_dir(directory, ?root)`
+- `:SetBuildDir directory`/`build.set_build_dir(directory, ?root)`
   - Manually overrides the build directory for the current project. Does
     nothing if `directory` is nil. Does NOT check if the build directory exists.
     Optionally specify a project root for the given build directory, the
