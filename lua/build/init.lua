@@ -124,10 +124,10 @@ function M.set_build_dir(dir, root)
 end
 
 function M.setup(user_opts)
-    opts = vim.tbl_extend("force", opts, user_opts or {})
+    opts = vim.tbl_extend("force", { opts, user_opts or {} })
 
-    opts.indicators = vim.tbl_extend("force", systems.indicators, opts.extra_handlers)
-    opts.programs = vim.tbl_extend("force", systems.programs, opts.extra_programs)
+    opts.indicators = vim.tbl_extend("force", { systems.indicators, opts.extra_handlers })
+    opts.programs = vim.tbl_extend("force", { systems.programs, opts.extra_programs })
 
     load_build_overrides()
     if opts.set_makeprg_immediately then
