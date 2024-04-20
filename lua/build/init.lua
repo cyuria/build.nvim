@@ -133,7 +133,7 @@ function M.setup(user_opts)
     if opts.set_makeprg_immediately then
         M.set_makeprg()
     end
-    if #opts.update_one_event ~= 0 then
+    if #opts.update_on_event ~= 0 then
         vim.api.nvim_create_autocmd(opts.update_on_event, {
             callback = M.set_makeprg,
         })
