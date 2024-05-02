@@ -19,6 +19,7 @@ M.programs = {
         return "meson compile" .. (build and " -C " .. build or "")
     end,
     cargo = function (_, _)
+        -- Consider changing to `cargo check`?
         return "cargo build"
     end,
 }
