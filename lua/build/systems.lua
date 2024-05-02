@@ -5,6 +5,7 @@ M.indicators = {
     ["CMakeLists.txt"] = "cmake",
     ["Makefile"] = "make",
     ["meson.build"] = "meson",
+    ["Cargo.toml"] = "cargo",
 }
 
 M.programs = {
@@ -16,6 +17,9 @@ M.programs = {
     end,
     meson = function (_, build)
         return "meson compile" .. (build and " -C " .. build or "")
+    end,
+    cargo = function (_, _)
+        return "cargo build"
     end,
 }
 
