@@ -16,10 +16,10 @@ M.programs = {
         return "make" .. (root and " -C " .. root or "")
     end,
     meson = function (_, build)
-        return "meson compile" .. (build and " -C " .. build or "")
+        return "meson $*" .. (build and " -C " .. build or "")
     end,
     cargo = function (_, _)
-        return "cargo build"
+        return "cargo $*"
     end,
 }
 
