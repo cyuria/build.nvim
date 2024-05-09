@@ -63,6 +63,37 @@ use {
 }
 ```
 
+## Usage
+
+To use *build.nvim*, just run `:make` as you would with any Makefile based
+build system. Even if you aren't in the project root directory, *build.nvim*
+should automatically find the project root and add extra arguments for you.
+I.e. instead of running `make` *build.nvim* will run
+`make -C ../PATH/TO/YOUR/PROJECT` when in a makefile based build system.
+
+### A Note for Some Build Systems
+
+Some build systems, i.e. meson and cargo will need an extra argument, such as
+`:make compile` with meson or `:make build` with cargo. This allows you more
+control, like running `:make test` or `:make check` instead.
+
+### Lua API
+
+*build.nvim* exposes the following lua functions and vim commands.
+
+```lua
+local build = require('build')
+```
+
+- `:SetMakeprg`/`build.set_makeprg()`
+  - Updates and sets the `makeprg` variable. Nothing will happen if no build
+    system has been detected.
+- `:SetBuildDir directory`/`build.set_build_dir(directory, ?root)`
+  - Manually overrides the build directory for the current project. Does
+    nothing if `directory` is nil. Does NOT check if the build directory exists.
+    Optionally specify a project root for the given build directory, the
+    existence of the root directory is not checked either.
+
 ## Configuration
 
 *build.nvim* comes with the following options and defaults.
@@ -102,23 +133,6 @@ local opts = {
 }
 ```
 
-## Usage
-
-*build.nvim* exposes the following lua functions and vim commands.
-
-```lua
-local build = require('build')
-```
-
-- `:SetMakeprg`/`build.set_makeprg()`
-  - Updates and sets the `makeprg` variable. Nothing will happen if no build
-    system has been detected.
-- `:SetBuildDir directory`/`build.set_build_dir(directory, ?root)`
-  - Manually overrides the build directory for the current project. Does
-    nothing if `directory` is nil. Does NOT check if the build directory exists.
-    Optionally specify a project root for the given build directory, the
-    existence of the root directory is not checked either.
-
 ## Contributing
 
 Please feel free to submit any PRs or issues, especially if they add support for
@@ -134,4 +148,9 @@ and `extra_programs` sections of your own configuration to
 - Bazel
 - Better support for the different variations of Make (i.e. GNU make vs BSD
   make vs NMake etc)
+
+Another cool feature I've been thinking about but been too lazy to implement is
+adding a default make command for meson/cargo etc, so that you can run `:make`
+and it will default to `:make build` or whatever equivalent. If you want to
+open a PR for this that would be incredible.
 
