@@ -5,7 +5,7 @@ your current project and sets `makeprg` accordingly.
 
 ## Requirements
 
-- neovim >= 0.8.0
+- neovim >= 0.8
 
 ## Features
 
