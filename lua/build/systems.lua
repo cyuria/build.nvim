@@ -6,6 +6,7 @@ M.indicators = {
     ["Makefile"] = "make",
     ["meson.build"] = "meson",
     ["Cargo.toml"] = "cargo",
+    ["build.zig"] = "zig",
 }
 
 M.programs = {
@@ -20,6 +21,9 @@ M.programs = {
     end,
     cargo = function (_, _)
         return "cargo $*"
+    end,
+    zig = function (_, _)
+        return "zig $*"
     end,
 }
 
