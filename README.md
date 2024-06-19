@@ -14,6 +14,7 @@ your current project and sets `makeprg` accordingly.
   - CMake (`CMakeLists.txt`)
   - Make (`Makefile`)
   - Meson (`meson.build`)
+  - Zig (`build.zig`)
 - Automatically detects project root based on the presence of a file
   - Git, mercurial, svn and a few other version control systems
   - A `package.json` file
