@@ -23,7 +23,7 @@ M.programs = {
         return "cargo $*"
     end,
     zig = function (_, _)
-        return "zig $*"
+        return "zig build $*"
     end,
 }
 
