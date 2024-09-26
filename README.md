@@ -15,6 +15,7 @@ your current project and sets `makeprg` accordingly.
   - Make (`Makefile`)
   - Meson (`meson.build`)
   - Zig (`build.zig`)
+  - Cargo (`Cargo.toml`)
 - Automatically detects project root based on the presence of a file
   - Git, mercurial, svn and a few other version control systems
   - A `package.json` file
