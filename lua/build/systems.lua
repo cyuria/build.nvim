@@ -12,13 +12,20 @@ M.indicators = {
 
 M.programs = {
     cmake = function (root, build)
-        return "cmake --build " .. (build or root or '.')
+        local directory = build or root or '.'
+        return "cmake --build " .. directory
     end,
     make = function (root, _)
-        return "make" .. (root and " -C " .. root or "")
+        if not root then
+            return "make $*"
+        end
+        return "make $* -C " .. root
     end,
     meson = function (_, build)
-        return "meson $*" .. (build and " -C " .. build or "")
+        if not build then
+            return "meson $*"
+        end
+        return "meson $* -C " .. build
     end,
     cargo = function (_, _)
         return "cargo $*"
@@ -27,7 +34,10 @@ M.programs = {
         return "zig build $*"
     end,
     setuptools = function (root, _)
-        return (root and "cd " .. root .. " && " or "") .. "python setup.py build"
+        if not root then
+            return "python setup.py build $*"
+        end
+        return "cd " .. root .. " && python setup.py build $*"
     end,
 }
 

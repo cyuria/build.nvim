@@ -11,7 +11,6 @@ local opts = {
         "package.json",
         "_darcs",
         ".hg",
-        ".hg",
         ".bzr",
         ".svn",
     },
@@ -68,37 +67,37 @@ local function store_build_overrides()
     write_file_async(opts.build_dirs_file, data)
 end
 
-local function find_root()
-    return vim.fs.dirname(vim.fs.find(opts.root_files, {
-        upward = true,
-        stop = vim.uv.os_homedir(),
-        path = vim.fs.dirname(vim.api.nvim_buf_get_name(0))
-    })[1])
-end
-
-local function find_build_dir(root)
-    if root == nil then root = find_root() end
-
-    local dir = build_dirs_override[root]
-    if dir ~= nil then return dir end
-
-    return vim.fs.find(opts.build_dirs, {
-        upward = true,
-        stop = root,
-        path = root
-    })[1]
-end
-
-local function find_system(root)
-    if root == nil then root = find_root() end
-
+local function find_indicator(path)
     local buildcfgfiles = {}
     local n = 0
     for k,_ in pairs(opts.indicators) do
         n = n + 1
         buildcfgfiles[n] = k
     end
-    local file = vim.fs.basename(vim.fs.find(buildcfgfiles, { path = root, })[1])
+    return vim.fs.find(buildcfgfiles, { path = path, })[1]
+end
+
+local function find_root()
+    local root_indicator = vim.fs.find(opts.root_files, {
+        upward = true,
+        path = vim.fs.dirname(vim.api.nvim_buf_get_name(0))
+    })[1] or find_indicator()
+    return vim.fs.dirname(root_indicator)
+end
+
+local function find_build_dir(root)
+    root = root or find_root()
+
+    if build_dirs_override[root] ~= nil then
+        return build_dirs_override[root]
+    end
+
+    return vim.fs.find(opts.build_dirs, { path = root })[1]
+end
+
+local function find_system(root)
+    root = root or find_root()
+    local file = vim.fs.basename(find_indicator(root))
     return opts.indicators[file]
 end
 
