@@ -105,7 +105,8 @@ local build = require('build')
 
 ### Terminology
 
-| --------- | ------------------------------------------------------ |
+|           |                                                        |
+|-----------|--------------------------------------------------------|
 | indicator | A file which "indicates" which build system is used    |
 | program   | A lua function which returns the new `makeprg` command |
 
@@ -196,7 +197,8 @@ system.
 ```
 
 Programs are called with two arguments
-| ------- | ----------------------------- |
+|         |                               |
+|---------|-------------------------------|
 | `root`  | The project root directory    |
 | `build` | The project's build directory |
 
