@@ -20,11 +20,13 @@ your current project and sets `makeprg` accordingly.
 - Automatically detects project root based on the presence of a file
   - Git, mercurial, svn and a few other version control systems
   - A `package.json` file
+  - Failing all else, *build.nvim* searches recursively downwards for known
+    build system files
 - Highly Customisable
 
 ## Installation
 
-Install as you would any other plugin with your favourite package manager.
+Install as you would any other plugin with your least favourite package manager (optional).
 
 ### vim-plug
 
@@ -72,13 +74,17 @@ To use *build.nvim*, just run `:make` as you would with any Makefile based
 build system. Even if you aren't in the project root directory, *build.nvim*
 should automatically find the project root and add extra arguments for you.
 I.e. instead of running `make` *build.nvim* will run
-`make -C ../PATH/TO/YOUR/PROJECT` when in a makefile based build system.
+`make -C ../PATH/TO/YOUR/PROJECT/ROOT` when in a makefile based build system.
 
 ### A Note for Some Build Systems
 
 Some build systems, i.e. meson and cargo will need an extra argument, such as
 `:make compile` with meson or `:make build` with cargo. This allows you more
 control, like running `:make test` or `:make check` instead.
+
+This can of course be changed by simply creating your own config which
+overrides the relevant systems. The same applies if you want to do the inverse
+with some other build system.
 
 ### Lua API
 
@@ -96,6 +102,12 @@ local build = require('build')
     nothing if `directory` is nil. Does NOT check if the build directory exists.
     Optionally specify a project root for the given build directory, the
     existence of the root directory is not checked either.
+
+### Terminology
+
+| --------- | ------------------------------------------------------ |
+| indicator | A file which "indicates" which build system is used    |
+| program   | A lua function which returns the new `makeprg` command |
 
 ## Configuration
 
@@ -127,7 +139,8 @@ local opts = {
     build_dirs = {
         "build", "builddir", "bin"
     },
-    -- Use specifiable build system indicators and handlers/programs
+    -- Custom build system indicators and programs. Can also be used to
+    -- overwrite existing indicators and/or programs
     extra_indicators = {},
     extra_programs = {},
     -- The path of the JSON file used to store individually set build
@@ -135,6 +148,93 @@ local opts = {
     build_dirs_file = vim.fn.stdpath('data') .. '/build.nvim/build_directories.json',
 }
 ```
+
+### Indicators
+
+Indicators are a table mapping of file names to build system names, for example
+the built in configuration is:
+```lua
+{
+    ["CMakeLists.txt"] = "cmake",
+    ["Makefile"] = "make",
+    ["meson.build"] = "meson",
+    ["Cargo.toml"] = "cargo",
+    ["build.zig"] = "zig",
+    ["setup.py"] = "setuptools",
+}
+```
+
+To add a new command, you might configure your options as follows:
+```lua
+{
+    extra_indicators = {
+        ["package.json"] = "npm",
+    },
+}
+```
+
+This would also require a program called `npm`.
+
+### Programs
+
+Programs are a table mapping of build system names to lua functions similar to
+indicators.
+
+For example, you might have the following configuration to add an `npm` build
+system.
+```lua
+{
+    extra_programs = {
+        npm = function (root, build)
+            if not root then
+                return "npm run $*"
+            end
+            return "cd " .. root .. " && npm run $*"
+        end,
+    }
+}
+```
+
+Programs are called with two arguments
+| ------- | ----------------------------- |
+| `root`  | The project root directory    |
+| `build` | The project's build directory |
+
+For example, a file hierarchy for a project might look something like this:
+```
+myapp
+├── LICENSE
+├── Makefile
+├── README.md
+├── build
+│   ├── gui.o
+│   ├── myapp
+│   ├── main.o
+│   ├── mylib.so
+│   └── utils.o
+├── docs
+│   ├── index.rst
+│   └── installation.rst
+├── examples
+│   ├── a_big_box.c
+│   ├── hello_world.c
+│   └── README.md
+├── src
+│   ├── gui.c
+│   ├── main.c
+│   └── utils.c
+├── h
+│   ├── gui.h
+│   └── utils.h
+└── tests
+    ├── test_hashmap.c
+    └── test_fuzz.c
+```
+
+In this case, the build system would be `"make"`, the `"root"` directory
+`myapp/` and the `"build"` directory `myapp/build/`.
+
+Note that *build.nvim* uses absolute paths whereever possible.
 
 ## Contributing
 
@@ -146,11 +246,13 @@ To add a build system just add the relevant entries from the `extra_indicators`
 and `extra_programs` sections of your own configuration to
 [lua/build/systems.lua](lua/build/systems.lua)
 
+Some currently unsupported systems which would be nice to support are
 - build2
 - Maven or Gradle or something java I don't know
 - Bazel
 - Better support for the different variations of Make (i.e. GNU make vs BSD
   make vs NMake etc)
+- Ninja
 
 Another cool feature I've been thinking about but been too lazy to implement is
 adding a default make command for meson/cargo etc, so that you can run `:make`
