@@ -7,6 +7,7 @@ M.indicators = {
     ["meson.build"] = "meson",
     ["Cargo.toml"] = "cargo",
     ["build.zig"] = "zig",
+    ["setup.py"] = "setuptools",
 }
 
 M.programs = {
@@ -24,6 +25,9 @@ M.programs = {
     end,
     zig = function (_, _)
         return "zig build $*"
+    end,
+    setuptools = function (root, _)
+        return (root and "cd " .. root .. " && " or "") .. "python setup.py build"
     end,
 }
 
