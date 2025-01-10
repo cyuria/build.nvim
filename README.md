@@ -225,7 +225,7 @@ myapp
 In this case, the build system would be `"make"`, the `"root"` directory
 `myapp/` and the `"build"` directory `myapp/build/`.
 
-Note that *build.nvim* uses absolute paths whereever possible.
+Note that *build.nvim* uses absolute paths wherever possible.
 
 ## Contributing
 
