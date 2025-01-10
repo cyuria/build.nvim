@@ -103,13 +103,6 @@ local build = require('build')
     Optionally specify a project root for the given build directory, the
     existence of the root directory is not checked either.
 
-### Terminology
-
-|           |                                                        |
-|-----------|--------------------------------------------------------|
-| indicator | A file which "indicates" which build system is used    |
-| program   | A lua function which returns the new `makeprg` command |
-
 ## Configuration
 
 *build.nvim* comes with the following options and defaults.
@@ -130,7 +123,6 @@ local opts = {
         ".git",
         "package.json",
         "_darcs",
-        ".hg",
         ".hg",
         ".bzr",
         ".svn",
@@ -187,10 +179,7 @@ system.
 {
     extra_programs = {
         npm = function (root, build)
-            if not root then
-                return "npm run $*"
-            end
-            return "cd " .. root .. " && npm run $*"
+            return "npm run $*"
         end,
     }
 }
