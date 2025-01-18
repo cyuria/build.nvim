@@ -106,7 +106,7 @@ function M.set_makeprg()
     local system = find_system(root)
     local builddir = find_build_dir(root)
 
-    local makeprg_builder = systems.programs[system]
+    local makeprg_builder = opts.programs[system]
     if makeprg_builder == nil then return end
 
     vim.o.makeprg = makeprg_builder(root, builddir)
