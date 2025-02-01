@@ -1,6 +1,8 @@
 
+---@class Systems
 local M = {}
 
+---@type table<string, string>
 M.indicators = {
     ["CMakeLists.txt"] = "cmake",
     ["Makefile"] = "make",
@@ -10,6 +12,9 @@ M.indicators = {
     ["setup.py"] = "setuptools",
 }
 
+---@alias ProgramHandler fun(root?:string, build?:string):string
+
+---@type table<string, ProgramHandler>
 M.programs = {
     cmake = function (root, build)
         local directory = build or root or '.'
@@ -18,14 +23,16 @@ M.programs = {
     make = function (root, _)
         if not root then
             return "make $*"
+        else
+            return "make $* -C " .. root
         end
-        return "make $* -C " .. root
     end,
     meson = function (_, build)
         if not build then
             return "meson $*"
+        else
+            return "meson $* -C " .. build
         end
-        return "meson $* -C " .. build
     end,
     cargo = function (_, _)
         return "cargo $*"
@@ -36,8 +43,9 @@ M.programs = {
     setuptools = function (root, _)
         if not root then
             return "python setup.py build $*"
+        else
+            return "cd " .. root .. " && python setup.py build $*"
         end
-        return "cd " .. root .. " && python setup.py build $*"
     end,
 }
 
