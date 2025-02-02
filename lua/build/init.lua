@@ -91,16 +91,20 @@ local function write_file(filename, data)
     end
 end
 
--- Loads the build overrides into the module variable
-local function load_build_overrides()
-    local json = read_file(opts.build_dirs_file)
-    if json == nil then return end
-    build_dirs_override = vim.json.decode(json)
-end
 -- Stores the build overrides in the persistent file
 local function store_build_overrides()
     local data = vim.json.encode(build_dirs_override)
     write_file(opts.build_dirs_file, data)
+end
+-- Loads the build overrides into the module variable
+local function load_build_overrides()
+    local json = read_file(opts.build_dirs_file)
+    if json == nil then
+        -- Likely because the file doesn't exist, so overwrite it
+        store_build_overrides()
+        return
+    end
+    build_dirs_override = vim.json.decode(json)
 end
 
 -- Searches for an indicator file somewhere in the project
