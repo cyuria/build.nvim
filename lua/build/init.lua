@@ -27,10 +27,14 @@ local opts = {
     ---@type table<string, ProgramHandler>
     extra_programs = {},
     ---@type string
-    build_dirs_file = vim.fn.stdpath('data') .. '/build.nvim/build_directories.json',
+    build_dirs_file = vim.fn.stdpath('data') .. '/build.nvim.json',
 }
 
----@type table<string, string>
+---@class Override
+---@field directory? string
+---@field system? string
+
+---@type table<string, Override>
 local build_dirs_override = {}
 
 ---@param filename string file path to read from
@@ -65,11 +69,7 @@ end
 ---@param filename string file path to write to
 ---@param data string file contents to write
 local function write_file(filename, data)
-    local mkdir_success, err_mkdir = vim.uv.fs_mkdir(vim.fs.dirname(filename), 448)
-    if mkdir_success == nil then
-        print(err_mkdir)
-        return
-    end
+    vim.uv.fs_mkdir(vim.fs.dirname(filename), 448)
 
     local fd, err_open = vim.uv.fs_open(filename, 'w', 438)
     if fd == nil then
@@ -88,22 +88,6 @@ local function write_file(filename, data)
         print(err_close)
         return
     end
-end
-
--- Stores the build overrides in the persistent file
-local function store_build_overrides()
-    local data = vim.json.encode(build_dirs_override)
-    write_file(opts.build_dirs_file, data)
-end
--- Loads the build overrides into the module variable
-local function load_build_overrides()
-    local json = read_file(opts.build_dirs_file)
-    if json == nil then
-        -- Likely because the file doesn't exist, so overwrite it
-        store_build_overrides()
-        return
-    end
-    build_dirs_override = vim.json.decode(json)
 end
 
 -- Searches for an indicator file somewhere in the project
@@ -136,8 +120,8 @@ end
 local function find_build_dir(root)
     root = root or find_root()
 
-    if build_dirs_override[root] ~= nil then
-        return build_dirs_override[root]
+    if (build_dirs_override[root] or {}).directory ~= nil then
+        return build_dirs_override[root].directory
     end
 
     return vim.fs.find(opts.build_dirs, { path = root })[1]
@@ -148,8 +132,32 @@ end
 ---@return string|nil
 local function find_build_system(root)
     root = root or find_root()
+
+    if (build_dirs_override[root] or {}).system ~= nil then
+        return build_dirs_override[root].system
+    end
+
     local file = vim.fs.basename(find_indicator(root))
     return systems.indicators[file]
+end
+
+-- Stores the build overrides in the persistent file
+function M.store_build_overrides()
+    local data = vim.json.encode(build_dirs_override)
+    print("writing to " .. opts.build_dirs_file)
+    write_file(opts.build_dirs_file, data)
+end
+
+-- Loads the build overrides into the module variable
+function M.load_build_overrides()
+    local json = read_file(opts.build_dirs_file)
+    if json == nil then
+        -- Likely because the file doesn't exist, so overwrite it
+        M.store_build_overrides()
+        return
+    end
+    ---@type table<string, Override>
+    build_dirs_override = vim.json.decode(json)
 end
 
 -- Detects the build system and sets the `vim.o.makeprg` variable accordingly
@@ -169,17 +177,35 @@ function M.set_makeprg(system, root, builddir)
 end
 
 -- Manually overrides the build directory for the current project
----@param dir string build directory for the project
+---@param directory string build directory for the project
 ---@param root? string project root directory, autodetect if `nil`
-function M.set_build_dir(dir, root)
-    if dir == nil then return end
-
+function M.override_build_dir(directory, root)
+    root = root or find_root()
     if root == nil then
-        root = find_root()
-        if root == nil then return end
+        vim.notify("Could not find root, aborting", vim.log.levels.ERROR)
+        return
     end
-    build_dirs_override[root] = dir
-    store_build_overrides()
+    local override = build_dirs_override[root] or {}
+    override.directory = directory
+    build_dirs_override[root] = override
+    M.store_build_overrides()
+    M.set_makeprg()
+end
+
+---@param system string
+---@param root? string
+function M.override_build_system(system, root)
+    root = root or find_root()
+    if root == nil then
+        vim.notify("Could not find root, aborting", vim.log.levels.ERROR)
+        return
+    end
+    local override = build_dirs_override[root] or {}
+    override.system = system
+    build_dirs_override[root] = override
+    print("testing123")
+    M.store_build_overrides()
+    M.set_makeprg()
 end
 
 ---@param user_opts BuildNvimConfig
@@ -189,7 +215,7 @@ function M.setup(user_opts)
     systems.indicators = vim.tbl_extend("force", systems.indicators, opts.extra_indicators)
     systems.programs = vim.tbl_extend("force", systems.programs, opts.extra_programs)
 
-    load_build_overrides()
+    M.load_build_overrides()
     if opts.set_makeprg_immediately then
         M.set_makeprg()
     end
@@ -202,14 +228,21 @@ function M.setup(user_opts)
     vim.api.nvim_create_user_command("SetMakeprg", function(_)
         M.set_makeprg()
     end, { nargs = 0 })
-    vim.api.nvim_create_user_command("SetBuildDir", function(info)
-        if #info.fargs > 2 then
-            print("Too many arguments passed to command", info.name)
-            print("Expected at most two arguments")
-            return
-        end
-        M.set_build_dir(info.fargs[1], info.fargs[2])
-    end, { nargs = "*", complete = "dir" })
+    vim.api.nvim_create_user_command(
+        "OverrideBuildDir",
+        function(info) M.override_build_dir(info.args) end,
+        { nargs = 1, complete = "dir" }
+    )
+    vim.api.nvim_create_user_command(
+        "OverrideBuildSystem",
+        function(info) M.override_build_system(info.args) end,
+        {
+            nargs = 1,
+            complete = function()
+                return vim.iter(systems.programs):map(function(k, _) return k end)
+            end
+        }
+    )
 end
 
 return M

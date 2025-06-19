@@ -127,11 +127,17 @@ LUA API                                                   *build.nvim-lua-api*
 - `:SetMakeprg` and `build.set_makeprg()`
   - Updates and sets the `makeprg` variable. Nothing will happen if no build
     system has been detected.
-- `:SetBuildDir directory` and `build.set_build_dir(directory, ?root)`
+- `:OverrideBuildDir directory` and `build.override_build_dir(directory, ?root)`
   - Manually overrides the build directory for the current project. Does
     nothing if `directory` is nil. Does NOT check if the build directory
-    exists. Optionally specify a project root for the given build directory,
-    the existence of the root directory is not checked either.
+    exists. The lua API allows you to optionally specify a project root for the
+    given build directory, the existence of the root directory is not checked
+    either.
+- `:OverrideBuildSystem system` and `build.override_build_system(directory, ?root)`
+  - Manually overrides the build system for the current project. Does NOT check
+    if the build system exists. The lua API allows you to optionally specify a
+    project root for the given build directory, the existence of the root
+    directory is not checked either.
 
 ==============================================================================
 Configuration                                       *build.nvim-configuration*
