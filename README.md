@@ -138,7 +138,6 @@ Some currently unsupported systems which would be nice to support are
 - Bazel
 - Better support for the different variations of Make (i.e. GNU make vs BSD
   make vs NMake etc)
-- Ninja
 
 Another cool feature I've been thinking about but been too lazy to implement is
 adding a default make command for meson/cargo etc, so that you can run `:make`
