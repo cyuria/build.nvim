@@ -203,7 +203,6 @@ function M.override_build_system(system, root)
     local override = build_dirs_override[root] or {}
     override.system = system
     build_dirs_override[root] = override
-    print("testing123")
     M.store_build_overrides()
     M.set_makeprg()
 end
