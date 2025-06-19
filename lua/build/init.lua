@@ -121,7 +121,7 @@ local function find_build_dir(root)
     root = root or find_root()
 
     if root ~= nil then
-        local path = vim.fs.abspath(root)
+        local path = vim.fs.normalize(vim.fs.abspath(root))
         if (build_dirs_override[path] or {}).directory ~= nil then
             return build_dirs_override[path].directory
         end
@@ -137,7 +137,7 @@ local function find_build_system(root)
     root = root or find_root()
 
     if root ~= nil then
-        local path = vim.fs.abspath(root)
+        local path = vim.fs.normalize(vim.fs.abspath(root))
         if (build_dirs_override[path] or {}).system ~= nil then
             return build_dirs_override[path].system
         end
@@ -191,7 +191,7 @@ function M.override_build_dir(directory, root)
         vim.notify("Could not find root, aborting", vim.log.levels.ERROR)
         return
     end
-    root = vim.fs.abspath(root)
+    root = vim.fs.normalize(vim.fs.abspath(root))
     local override = build_dirs_override[root] or {}
     override.directory = directory
     build_dirs_override[root] = override
@@ -207,7 +207,7 @@ function M.override_build_system(system, root)
         vim.notify("Could not find root, aborting", vim.log.levels.ERROR)
         return
     end
-    root = vim.fs.abspath(root)
+    root = vim.fs.normalize(vim.fs.abspath(root))
     local override = build_dirs_override[root] or {}
     override.system = system
     build_dirs_override[root] = override
