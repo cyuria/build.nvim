@@ -1,4 +1,3 @@
-
 local systems = require('build.systems')
 
 ---@class BuildNvim
@@ -114,7 +113,7 @@ end
 local function find_indicator(path)
     local buildcfgfiles = {}
     local n = 0
-    for k,_ in pairs(systems.indicators) do
+    for k, _ in pairs(systems.indicators) do
         n = n + 1
         buildcfgfiles[n] = k
     end
@@ -200,16 +199,16 @@ function M.setup(user_opts)
         })
     end
 
-    vim.api.nvim_create_user_command("SetMakeprg", function (_)
+    vim.api.nvim_create_user_command("SetMakeprg", function(_)
         M.set_makeprg()
     end, { nargs = 0 })
-    vim.api.nvim_create_user_command("SetBuildDir", function (info)
-        if info.nargs > 2 then
+    vim.api.nvim_create_user_command("SetBuildDir", function(info)
+        if #info.fargs > 2 then
             print("Too many arguments passed to command", info.name)
             print("Expected at most two arguments")
             return
         end
-        M.set_build_dir(info.args[1], info.args[2])
+        M.set_build_dir(info.fargs[1], info.fargs[2])
     end, { nargs = "*", complete = "dir" })
 end
 
