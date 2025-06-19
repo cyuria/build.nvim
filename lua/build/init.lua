@@ -185,6 +185,7 @@ function M.override_build_dir(directory, root)
         vim.notify("Could not find root, aborting", vim.log.levels.ERROR)
         return
     end
+    root = vim.fs.abspath(root)
     local override = build_dirs_override[root] or {}
     override.directory = directory
     build_dirs_override[root] = override
@@ -200,6 +201,7 @@ function M.override_build_system(system, root)
         vim.notify("Could not find root, aborting", vim.log.levels.ERROR)
         return
     end
+    root = vim.fs.abspath(root)
     local override = build_dirs_override[root] or {}
     override.system = system
     build_dirs_override[root] = override

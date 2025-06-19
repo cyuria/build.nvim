@@ -47,11 +47,11 @@ M.programs = {
             return "cd " .. root .. " && python setup.py build $*"
         end
     end,
-    ninja = function(root, _)
-        if not root then
+    ninja = function(_, build)
+        if not build then
             return "ninja $*"
         else
-            return "ninja $* -C " .. root
+            return "ninja $* -C " .. build
         end
     end,
 }
