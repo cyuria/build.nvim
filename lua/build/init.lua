@@ -120,8 +120,11 @@ end
 local function find_build_dir(root)
     root = root or find_root()
 
-    if (build_dirs_override[root] or {}).directory ~= nil then
-        return build_dirs_override[root].directory
+    if root ~= nil then
+        local path = vim.fs.abspath(root)
+        if (build_dirs_override[path] or {}).directory ~= nil then
+            return build_dirs_override[path].directory
+        end
     end
 
     return vim.fs.find(opts.build_dirs, { path = root })[1]
@@ -133,8 +136,11 @@ end
 local function find_build_system(root)
     root = root or find_root()
 
-    if (build_dirs_override[root] or {}).system ~= nil then
-        return build_dirs_override[root].system
+    if root ~= nil then
+        local path = vim.fs.abspath(root)
+        if (build_dirs_override[path] or {}).system ~= nil then
+            return build_dirs_override[path].system
+        end
     end
 
     local file = vim.fs.basename(find_indicator(root))
