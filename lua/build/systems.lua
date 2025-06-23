@@ -47,11 +47,13 @@ M.programs = {
             return "cd " .. root .. " && python setup.py build $*"
         end
     end,
-    ninja = function(_, build)
-        if not build then
+    ninja = function(root, _)
+        -- Searching for ninja should ultimately yield the build.ninja in the
+        -- build directory, but right now it doesn't
+        if not root then
             return "ninja $*"
         else
-            return "ninja $* -C " .. build
+            return "ninja -C " .. root .. " $*"
         end
     end,
 }
