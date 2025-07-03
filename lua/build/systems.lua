@@ -47,13 +47,24 @@ M.programs = {
             return "cd " .. root .. " && python setup.py build $*"
         end
     end,
-    ninja = function(root, _)
-        -- Searching for ninja should ultimately yield the build.ninja in the
-        -- build directory, but right now it doesn't
-        if not root then
+    ninja = function(root, build)
+        -- search the build directory for a build.ninja file. If none such
+        -- exist, then search the entire project from the root for one. Failing
+        -- that, use the build directory as a last resort backup
+        local ninjadir = vim.fs.dirname(
+            vim.fs.find(
+                { 'build.ninja' },
+                { type = 'file', upward = true, path = build }
+            )[0] or vim.fs.find(
+                { 'build.ninja' },
+                { type = 'file', upward = true, path = root }
+            )[0]
+        ) or build
+
+        if not ninjadir then
             return "ninja $*"
         else
-            return "ninja -C " .. root .. " $*"
+            return "ninja -C " .. build .. " $*"
         end
     end,
 }
