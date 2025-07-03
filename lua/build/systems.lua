@@ -51,6 +51,7 @@ M.programs = {
         -- search the build directory for a build.ninja file. If none such
         -- exist, then search the entire project from the root for one. Failing
         -- that, use the build directory as a last resort backup
+
         local ninjadir = vim.fs.dirname(
             vim.fs.find(
                 { 'build.ninja' },
@@ -59,9 +60,12 @@ M.programs = {
                 { 'build.ninja' },
                 { type = 'file', upward = true, path = root }
             )[0]
-        ) or build
+        )
+        if ninjadir == nil then
+            ninjadir = build
+        end
 
-        if not ninjadir then
+        if ninjadir == nil then
             return "ninja $*"
         else
             return "ninja -C " .. build .. " $*"
