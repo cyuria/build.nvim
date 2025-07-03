@@ -131,14 +131,14 @@ LUA API                                                   *build.nvim-lua-api*
 - `:OverrideBuildDir directory` and `build.override_build_dir(directory, ?root)`
   - Manually overrides the build directory for the current project. Does
     nothing if `directory` is nil. Does NOT check if the build directory
-    exists. The lua API allows you to optionally specify a project root for the
-    given build directory, the existence of the root directory is not checked
-    either.
+    exists. The lua API allows you to optionally specify a project root for
+    the given build directory, the existence of the root directory is not
+    checked either.
 - `:OverrideBuildSystem system` and `build.override_build_system(directory, ?root)`
-  - Manually overrides the build system for the current project. Does NOT check
-    if the build system exists. The lua API allows you to optionally specify a
-    project root for the given build directory, the existence of the root
-    directory is not checked either.
+  - Manually overrides the build system for the current project. Does NOT
+    check if the build system exists. The lua API allows you to optionally
+    specify a project root for the given build directory, the existence of the
+    root directory is not checked either.
 
 ==============================================================================
 Configuration                                       *build.nvim-configuration*
@@ -287,9 +287,9 @@ instead of `myapp/`.
 ==============================================================================
 Contributing                                         *build.nvim-contributing*
 
-Please feel free to submit any PRs or issues, especially if they add support for
-more build systems. It would be great if we could support every build system
-under the sun.
+Please feel free to submit any PRs or issues, especially if they add support
+for more build systems. It would be great if we could support every build
+system under the sun.
 
 To add a build system just add the relevant entries from the
 `extra_indicators` and `extra_programs` sections of your own configuration to
