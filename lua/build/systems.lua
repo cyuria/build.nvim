@@ -65,14 +65,13 @@ M.programs = {
                 { type = 'file', path = root }
             )[1]
         )
-        if ninjadir == nil then
-            ninjadir = build
-        end
 
-        if ninjadir == nil then
-            return "ninja $*"
-        else
+        if ninjadir ~= nil then
+            return "ninja -C " .. ninjadir .. " $*"
+        elseif build ~= nil then
             return "ninja -C " .. build .. " $*"
+        else
+            return "ninja $*"
         end
     end,
 }
