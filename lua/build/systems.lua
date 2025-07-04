@@ -57,13 +57,13 @@ M.programs = {
             vim.fs.find(
                 { 'build.ninja' },
                 { type = 'file', path = build }
-            )[0] or vim.fs.find(
+            )[1] or vim.fs.find(
                 { 'build.ninja' },
                 { type = 'file' }
-            )[0] or vim.fs.find(
+            )[1] or vim.fs.find(
                 { 'build.ninja' },
                 { type = 'file', path = root }
-            )[0]
+            )[1]
         )
         if ninjadir == nil then
             ninjadir = build
