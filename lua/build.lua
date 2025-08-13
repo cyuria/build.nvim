@@ -87,11 +87,14 @@ function M.search(global, force)
 	end
 
 	local system = find_build_system(root)
+	if system == nil then
+		return
+	end
 
 	if global then
-		--vim.cmd["compiler!"](system)
+		vim.cmd["compiler!"](system)
 	else
-		--vim.cmd.compiler(system)
+		vim.cmd.compiler(system)
 	end
 end
 
