@@ -52,6 +52,7 @@ EOF
 ```lua
 {
     "cyuria/build.nvim",
+    event = { "DirChanged", "BufRead" },
     opts = {}
 }
 ```
