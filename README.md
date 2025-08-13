@@ -76,17 +76,8 @@ use {
 
 For detailed info, see `:help build.nvim`.
 
-To use *build.nvim*, just run `:make` as you would with any Makefile based
-build system. Even if you aren't in the project root directory, *build.nvim*
-should automatically find the project root and add extra arguments for you.
-I.e. instead of running `make` *build.nvim* will run
-`make -C /PATH/TO/YOUR/PROJECT/ROOT` when in a makefile based build system.
-
-### A Note for Some Build Systems
-
-Some build systems, i.e. meson and cargo, will need an extra argument, such as
-`:make compile` with meson or `:make build` with cargo. This allows you more
-control, like running `:make test` or `:make check` instead.
+*build.nvim* seamlessly integrates with `:compiler` and `:make`, simply call
+`:make` and everything should work pretty much out of the box.
 
 ## Configuration
 
@@ -94,36 +85,26 @@ control, like running `:make test` or `:make check` instead.
 
 ```lua
 require('build').setup({
-    -- Set the makeprg variable during the setup call
-    set_makeprg_immediately = true,
-
-    -- A list of autocommand events upon which to update/set the makeprg
-    -- varaible
-    update_on_event = { "DirChanged", },
-    -- A list of files used for detecting the project root. If any one of these
-    -- files or directories is detected, that directory is selected as the root
-    -- directory. If none of the files are found, recursively descend the
-    -- directory tree until one of them is found
-    root_files = {
-        ".git",
-        "package.json",
-        "_darcs",
-        ".hg",
-        ".bzr",
-        ".svn",
+    -- Events to set the compiler on. Set this to {} to not
+    -- generate an autocommand for this
+    update_events = {
+    	"DirChanged",
+    	"BufRead",
     },
-    -- A list of directories to search for which will be set as the build
-    -- directory for the project
-    build_dirs = {
-        "build", "builddir", "bin"
+    
+    -- A list of marker files which indicate the parent directory
+    -- should be considered the project root
+    root = {
+    	".bzr",
+    	".git",
+    	".hg",
+    	".svn",
+    	"_darcs",
+    	"package.json",
     },
-    -- Custom build system indicators and programs. Can also be used to
-    -- overwrite existing indicators and/or programs
-    extra_indicators = {},
-    extra_programs = {},
-    -- The path of the JSON file used to store individually set build
-    -- directories on a case by case basis using the project root directory
-    build_dirs_file = vim.fn.stdpath('data') .. '/build.nvim/build_directories.json',
+    -- Extra marker files. Use this to avoid overwriting the
+    -- default markers
+    root_extra = {},
 })
 ```
 
@@ -139,9 +120,3 @@ Some currently unsupported systems which would be nice to support are
 - Bazel
 - Better support for the different variations of Make (i.e. GNU make vs BSD
   make vs NMake etc)
-
-Another cool feature I've been thinking about but been too lazy to implement is
-adding a default make command for meson/cargo etc, so that you can run `:make`
-and it will default to `:make build` or whatever equivalent. If you want to
-open a PR for this that would be incredible.
-
