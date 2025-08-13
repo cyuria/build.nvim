@@ -50,6 +50,8 @@ local function find_build_system(root)
 	local path = vim.fs.normalize(vim.fs.abspath(root))
 
 	local compilers = {
+		["CMakeLists.txt"] = "cmake",
+		["Cargo.toml"] = "cargo",
 		["build.ninja"] = "ninja",
 		["build.zig"] = "zig",
 		["meson.build"] = "meson",
