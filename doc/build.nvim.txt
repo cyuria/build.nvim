@@ -22,33 +22,31 @@ Table of Contents                               *build.nvim-table-of-contents*
 ==============================================================================
 Overview			            *build.nvim* *build.nvim-overview*
 
-A neovim plugin written in lua which automatically detects the build system of
-your current project and sets `makeprg` accordingly.
+A lua neovim plugin to extend the functionality of the `:compiler` and `:make`
+workflow with more build systems and workspace autodetection.
 
 REQUIREMENTS                                         *build.nvim-requirements*
 
-- neovim >= 0.8
+- neovim >= 0.10
 
 FEATURES                                                 *build.nvim-features*
 
 Automatically detects your build system based on the first build file found,
 currently supports:
 - CMake (`CMakeLists.txt`)
+- Cargo (`Cargo.toml`)
 - Make (`Makefile`)
 - Meson (`meson.build`)
-- Zig (`build.zig`)
-- Cargo (`Cargo.toml`)
-- Setuptools (`setup.py`)
 - Ninja (`build.ninja`)
+- Setuptools (`setup.py`)
+- Zig (`build.zig`)
 
 Automatically detects project root based on the presence of a file
 - Git, mercurial, svn and a few other version control systems
-- A `package.json` file
-- Failing all else, `build.nvim` searches recursively downwards for known
-  build system files
+- `package.json`, `Makefile`, `Cargo.toml`, etc
 
-Highly customisable, with sensible defaults
-- You can configure almost everything.
+Gets out of your way
+- Integrates with builtin neovim features to allow transparent overriding
 
 ==============================================================================
 Installation                                         *build.nvim-installation*
@@ -77,7 +75,11 @@ LAZY.NVIM                                  *build.nvim-installation-lazy.nvim*
 >lua
 	require('lazy').setup({
 		"cyuria/build.nvim",
-		opts = {}
+		opts = {
+			-- put your configuration here
+			-- or don't, see the config section for
+			-- available options and defaults
+		}
 	})
 <
 
@@ -100,45 +102,19 @@ PACKER                                        *build.nvim-installation-packer*
 ==============================================================================
 Usage                                                       *build.nvim-usage*
 
-To use `build.nvim`, just run `:make` as you would with any Makefile based
-build system. Even if you aren't in the project root directory, `build.nvim`
-will automatically find the project root and add extra arguments for you. I.e.
-instead of running `make` `build.nvim` will run
-`make -C /PATH/TO/YOUR/PROJECT/ROOT` when in a makefile based build system.
+By default `build.nvim` automatically sets the compiler with `:compiler`,
+which will itself set `'makeprg'` and `'errorformat'`. These work with `:make`
+and the quickfix list.
 
 NOTE FOR SOME BUILD SYSTEMS                           *build.nvim-usage-notes*
                                          *build.nvim-cargo* *build.nvim-meson*
 
-Some build systems, i.e. meson and cargo will need an extra argument, such as
-`:make compile` with meson or `:make build` with cargo. This allows you more
-control, like running `:make test` or `:make check` instead.
+Some build systems, i.e. meson and zig will need an extra argument, such as
+`:make compile` with meson or `:make build` with cargo and zig. This allows
+you more control, like running `:make test`.
 
-This can of course be changed by simply creating your own config which
-overrides the relevant systems. The same applies if you want to do the inverse
-with some other build system.
-
-LUA API                                                   *build.nvim-lua-api*
-
-`build.nvim` exposes the following lua functions and vim commands.
-
->lua
-	local build = require('build')
-<
-
-- `:SetMakeprg` and `build.set_makeprg()`
-  - Updates and sets the `makeprg` variable. Nothing will happen if no build
-    system has been detected.
-- `:OverrideBuildDir directory` and `build.override_build_dir(directory, ?root)`
-  - Manually overrides the build directory for the current project. Does
-    nothing if `directory` is nil. Does NOT check if the build directory
-    exists. The lua API allows you to optionally specify a project root for
-    the given build directory, the existence of the root directory is not
-    checked either.
-- `:OverrideBuildSystem system` and `build.override_build_system(directory, ?root)`
-  - Manually overrides the build system for the current project. Does NOT
-    check if the build system exists. The lua API allows you to optionally
-    specify a project root for the given build directory, the existence of the
-    root directory is not checked either.
+To override these, simply use the `zig_build` compiler instead of the
+autodetected `zig` compiler.
 
 ==============================================================================
 Configuration                                       *build.nvim-configuration*
@@ -147,152 +123,36 @@ Configuration                                       *build.nvim-configuration*
 
 >lua
 	require('build').setup({
-		-- Set the makeprg variable during the setup call
-		set_makeprg_immediately = true,
-	
-		-- A list of autocommand events upon which to update/set the makeprg
-		-- varaible
-		update_on_event = { "DirChanged", },
-		-- A list of files used for detecting the project root. If any one of these
-		-- files or directories is detected, that directory is selected as the root
-		-- directory. If none of the files are found, recursively descend the
-		-- directory tree until one of them is found
-		root_files = {
-			".git",
-			"package.json",
-			"_darcs",
-			".hg",
+		-- Events to set the compiler on. Set this to {} to not
+		-- generate an autocommand for this
+		update_events = {
+			"DirChanged",
+			"BufRead",
+		},
+
+		-- A list of marker files which indicate the parent directory
+		-- should be considered the project root
+		root = {
 			".bzr",
+			".git",
+			".hg",
 			".svn",
+			"_darcs",
+			"package.json",
 		},
-		-- A list of directories to search for which will be set as the build
-		-- directory for the project
-		build_dirs = {
-			"build", "builddir", "bin"
-		},
-		-- Custom build system indicators and programs. Can also be used to
-		-- overwrite existing indicators and/or programs
-		extra_indicators = {},
-		extra_programs = {},
-		-- The path of the JSON file used to store individually set build
-		-- directories on a case by case basis using the project root directory
-		build_dirs_file = vim.fn.stdpath('data') .. '/build.nvim/build_directories.json',
+		-- Extra marker files. Use this to avoid overwriting the
+		-- default markers
+		root_extra = {},
 	})
 <
-
-==============================================================================
-Indicators                                             *build.nvim-indicators*
-
-Indicators are a table mapping of file names to build systems, for example the
-built in configuration is:
->lua
-	{
-		["CMakeLists.txt"] = "cmake",
-		["Makefile"] = "make",
-		["meson.build"] = "meson",
-		["Cargo.toml"] = "cargo",
-		["build.zig"] = "zig",
-		["setup.py"] = "setuptools",
-		["build.ninja"] = "ninja",
-	}
-<
-
-To add a new command, you might configure your setup options as follows:
->lua
-	require('build').setup({
-		...
-		extra_indicators = {
-			["package.json"] = "npm",
-		},
-		...
-	})
-<
-
-This would also require a "program" called `npm`, note that this can be called
-whatever you like. See |build.nvim-programs| for more info.
-
-==============================================================================
-Programs                                                 *build.nvim-programs*
-
-Programs are a table mapping of build system names to lua functions similar to
-indicators.
-
-For example, you might have the following configuration to add a build system
-called `npm` (continuing on from the example in |build.nvim-indicators|).
->lua
-	require('build').setup({
-		...
-		extra_programs = {
-			npm = function (root, build)
-				return "npm run $*"
-			end,
-		}
-		...
-	})
-<
-
-PROGRAM HANDLER FUNCTIONS               *build.nvim-program-handler-functions*
-
-Program handler functions should have the following signature:
->lua
-	---@param root? string project root path
-	---@param build? string build directory path
-	---@return string
-	function (root, build)
-		return "thegreatestbuildsystem -C " .. root
-	end
-<
-
-For example, a file hierarchy for a project might look something like this:
->
-	myapp
-	├── LICENSE
-	├── Makefile
-	├── README.md
-	├── build
-	│   ├── gui.o
-	│   ├── myapp
-	│   ├── main.o
-	│   ├── mylib.so
-	│   └── utils.o
-	├── docs
-	│   ├── index.rst
-	│   └── installation.rst
-	├── examples
-	│   ├── a_big_box.c
-	│   ├── hello_world.c
-	│   └── README.md
-	├── src
-	│   ├── gui.c
-	│   ├── main.c
-	│   └── utils.c
-	├── h
-	│   ├── gui.h
-	│   └── utils.h
-	└── tests
-	    ├── test_hashmap.c
-	    └── test_fuzz.c
-<
-
-In this case, the build system would be `"make"`, the project root directory
-`myapp/` and the build directory `myapp/build/`, so that the following is
-called:
->lua
-	vim.o.makeprg = programs["make"]("myapp/", "myapp/build/")
-
-Note that `build.nvim` uses absolute paths wherever possible, so the above
-example would actually use the absolute paths, such as `/home/me/code/myapp/`
-instead of `myapp/`.
 
 ==============================================================================
 Contributing                                         *build.nvim-contributing*
 
+https://github.com/cyuria/build.nvim
+
 Please feel free to submit any PRs or issues, especially if they add support
 for more build systems. It would be great if we could support every build
 system under the sun.
-
-To add a build system just add the relevant entries from the
-`extra_indicators` and `extra_programs` sections of your own configuration to
-`lua/build/systems.lua`
 
 vim:tw=78:ts=8:noet:ft=help:norl
