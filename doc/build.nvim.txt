@@ -35,6 +35,7 @@ Automatically detects your build system based on the first build file found,
 currently supports:
 - CMake (`CMakeLists.txt`)
 - Cargo (`Cargo.toml`)
+- Just (`Justfile`)
 - Make (`Makefile`)
 - Meson (`meson.build`)
 - Ninja (`build.ninja`)

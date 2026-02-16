@@ -54,6 +54,8 @@ local function find_build_system(root)
 		["Cargo.toml"] = "cargo",
 		["build.ninja"] = "ninja",
 		["build.zig"] = "zig",
+		["Justfile"] = "just",
+		["justfile"] = "just",
 		["meson.build"] = "meson",
 		["package.json"] = "npm",
 		["setup.py"] = "setuptools",
