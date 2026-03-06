@@ -106,6 +106,22 @@ require('build').setup({
     -- Extra marker files. Use this to avoid overwriting the
     -- default markers
     root_extra = {},
+
+    -- A list of marker files and compiler association
+    compilers = {
+    	["CMakeLists.txt"] = "cmake",
+    	["Cargo.toml"] = "cargo",
+    	["build.ninja"] = "ninja",
+    	["build.zig"] = "zig",
+    	["Justfile"] = "just",
+    	["justfile"] = "just",
+    	["meson.build"] = "meson",
+    	["package.json"] = "npm",
+    	["setup.py"] = "setuptools",
+    },
+    -- Extra marker files and compiler association. Use this to avoid
+    -- overwriting the default markers
+    compilers_extra = {},
 })
 ```
 
