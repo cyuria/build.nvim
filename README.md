@@ -107,7 +107,7 @@ require('build').setup({
     -- default markers
     root_extra = {},
 
-    -- A list of marker files and compiler association
+    -- A list of marker files and compiler/build system association
     compilers = {
     	["CMakeLists.txt"] = "cmake",
     	["Cargo.toml"] = "cargo",
@@ -119,7 +119,7 @@ require('build').setup({
     	["package.json"] = "npm",
     	["setup.py"] = "setuptools",
     },
-    -- Extra marker files and compiler association. Use this to avoid
+    -- Extra marker files and compiler/build system association. Use this to avoid
     -- overwriting the default markers
     compilers_extra = {},
 })
