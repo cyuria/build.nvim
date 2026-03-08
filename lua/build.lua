@@ -56,7 +56,7 @@ end
 
 -- Change the options for build.nvim
 --
----@param opts BuildNvimConfig
+---@param opts? BuildNvimConfig
 function M.setup(opts)
 	options = vim.tbl_extend("force", options, opts or {})
 
