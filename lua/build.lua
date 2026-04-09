@@ -21,38 +21,29 @@ local options = {
 	---@type string[]
 	root_extra = {},
 
-	---@type { [string]: string }
+	---@type { [string]: string }[]
 	compilers = {
-		["CMakeLists.txt"] = "cmake",
-		["Cargo.toml"] = "cargo",
-		["build.ninja"] = "ninja",
-		["build.zig"] = "zig",
-		["Justfile"] = "just",
-		["justfile"] = "just",
-		["meson.build"] = "meson",
-		["package.json"] = "npm",
-		["setup.py"] = "setuptools",
+		{
+			["Justfile"] = "just",
+			["Makefile"] = "make",
+			["build.ninja"] = "ninja",
+			["justfile"] = "just",
+		},
+		{
+			["CMakeLists.txt"] = "cmake",
+			["Cargo.toml"] = "cargo",
+			["build.zig"] = "zig",
+			["meson.build"] = "meson",
+			["setup.py"] = "setuptools",
+		},
+		{
+			["package.json"] = "npm",
+		},
 	},
 
-	---@type { [string]: string }
+	---@type { [string]: string }[]
 	compilers_extra = {},
 }
-
--- Merge 2 tables into a new one
---
----@param t1 table
----@param t2 table
----@return table
-local function merge_tables(t1, t2)
-	local new_table = {}
-	for k, v in pairs(t1) do
-		new_table[k] = v
-	end
-	for k, v in pairs(t2) do
-		new_table[k] = v
-	end
-	return new_table
-end
 
 -- Change the options for build.nvim
 --
@@ -61,7 +52,10 @@ function M.setup(opts)
 	options = vim.tbl_extend("force", options, opts or {})
 
 	vim.list_extend(options.root, options.root_extra)
-	options.compilers = merge_tables(options.compilers, options.compilers_extra)
+	-- can't use vim.tbl_deep_extend() because we need to merge the lists
+	for stage, v in ipairs(options.compilers_extra) do
+		options.compilers[stage] = vim.tbl_extend('force', options.compilers[stage] or {}, v)
+	end
 
 	local augroup = vim.api.nvim_create_augroup("build.nvim", {})
 	if #options.update_events ~= 0 then
@@ -82,8 +76,14 @@ end
 local function find_build_system(root)
 	local path = vim.fs.normalize(vim.fs.abspath(root))
 
-	local file = vim.fs.find(vim.tbl_keys(options.compilers), { path = path })[1]
-	return options.compilers[vim.fs.basename(file)]
+	for _, compilers in ipairs(options.compilers) do
+		local file = vim.fs.find(vim.tbl_keys(compilers), { path = path })[1]
+		if file ~= nil then
+			vim.g.build_system_file = file
+			return compilers[vim.fs.basename(file)]
+		end
+	end
+	return nil
 end
 
 -- Attempts to detect the build system and call `:compiler` accordingly
