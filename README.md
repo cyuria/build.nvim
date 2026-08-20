@@ -86,15 +86,8 @@ For detailed info, see `:help build.nvim`.
 
 ```lua
 require('build').setup({
-    -- Events to set the compiler on. Set this to {} to not
-    -- generate an autocommand for this
-    update_events = {
-    	"DirChanged",
-    	"BufRead",
-    },
-    
-    -- A list of marker files which indicate the parent directory
-    -- should be considered the project root
+    -- A list of marker files which indicate the parent directory should be
+    -- considered the project root
     root = {
     	".bzr",
     	".git",
@@ -103,25 +96,33 @@ require('build').setup({
     	"_darcs",
     	"package.json",
     },
-    -- Extra marker files. Use this to avoid overwriting the
-    -- default markers
-    root_extra = {},
 
-    -- A list of marker files and compiler/build system association
-    compilers = {
-    	["CMakeLists.txt"] = "cmake",
-    	["Cargo.toml"] = "cargo",
-    	["build.ninja"] = "ninja",
-    	["build.zig"] = "zig",
-    	["Justfile"] = "just",
-    	["justfile"] = "just",
-    	["meson.build"] = "meson",
-    	["package.json"] = "npm",
-    	["setup.py"] = "setuptools",
-    },
-    -- Extra marker files and compiler/build system association. Use this to avoid
-    -- overwriting the default markers
-    compilers_extra = {},
+    -- A list of marker files and compiler/build system association sorted by
+    -- priority
+	compilers = {
+		{
+            ["build.sh"] = "build_sh",
+        },
+        {
+			["CMakeLists.txt"] = "cmake",
+			["Cargo.toml"] = "cargo",
+			["Justfile"] = "just",
+			["build.zig"] = "zig_build",
+			["justfile"] = "just",
+			["meson.build"] = "meson",
+			["setup.py"] = "setuptools",
+		},
+		{
+			["Makefile"] = "make",
+			["build.ninja"] = "ninja",
+			["package.json"] = "npm",
+		},
+	},
+
+    -- deprecated options, see `:h build.nvim`
+    update_events = nil,
+    root_extra = nil,
+    compilers_extra = nil,
 })
 ```
 

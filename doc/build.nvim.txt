@@ -7,17 +7,22 @@ Table of Contents                               *build.nvim-table-of-contents*
    - Requirements                                    |build.nvim-requirements|
    - Features                                            |build.nvim-features|
 2. Installation                                      |build.nvim-installation|
-   - Vim-plug                               |build.nvim-installation-vim-plug|
-   - Lazy.nvim                                  |build.nvim-installation-lazy|
-   - Packer                                   |build.nvim-installation-packer|
+   - vim.pack                                            |build.nvim-vim.pack|
+   - Vim-plug                                            |build.nvim-vim-plug|
+   - Lazy.nvim                                          |build.nvim-lazy.nvim|
+   - Packer                                                |build.nvim-packer|
 3. Usage                                                    |build.nvim-usage|
-   - Note for Meson and Cargo                         |build.nvim-usage-notes|
-   - Lua API                                              |build.nvim-lua-api|
+   - build.sh                                            |build.nvim-build.sh|
+   - Cmake                                                  |build.nvim-cmake|
+   - Cargo                                                  |build.nvim-cargo|
+   - Just                                                    |build.nvim-just|
+   - Make                                                    |build.nvim-make|
+   - Meson                                                  |build.nvim-meson|
+   - Ninja                                                  |build.nvim-ninja|
+   - Setuptools                                        |build.nvim-setuptools|
+   - Zig                                                      |build.nvim-zig|
 4. Configuration                                    |build.nvim-configuration|
-5. Indicators                                          |build.nvim-indicators|
-6. Programs                                              |build.nvim-programs|
-   - Program Handler Functions          |build.nvim-program-handler-functions|
-7. Contributing                                      |build.nvim-contributing|
+5. Contributing                                      |build.nvim-contributing|
 
 ==============================================================================
 Overview			            *build.nvim* *build.nvim-overview*
@@ -44,59 +49,47 @@ currently supports:
 
 Automatically detects project root based on the presence of a file
 - Git, mercurial, svn and a few other version control systems
-- `package.json`, `Makefile`, `Cargo.toml`, etc
+- `package.json`
 
 Gets out of your way
 - Integrates with builtin neovim features to allow transparent overriding
+- Sets up autocommands for correct behaviour by default
 
 ==============================================================================
 Installation                                         *build.nvim-installation*
 
 Install as you would any other plugin.
 
-VIM-PLUG                                    *build.nvim-installation-vim-plug*
+VIM.PACK              *build.nvim-vim.pack* *build.nvim-installation-vim.pack*
+
+>lua
+	vim.pack.add({
+		'https://github.com/cyuria/build.nvim'
+	})
+
+VIM-PLUG              *build.nvim-vim-plug* *build.nvim-installation-vim-plug*
 
 >vim
 	" Vimscript
 	call plug#begin(s:plug_dir)
 	Plug "cyuria/build.nvim"
 	call plug#end()
-	
-	lua << EOF
-	require('build').setup({
-		-- put your configuration here
-		-- or don't, see the config section for
-		-- available options and defaults
-	})
-	EOF
 <
 
-LAZY.NVIM                                  *build.nvim-installation-lazy.nvim*
+LAZY.NVIM           *build.nvim-lazy.nvim* *build.nvim-installation-lazy.nvim*
 
 >lua
 	require('lazy').setup({
 		"cyuria/build.nvim",
-		opts = {
-			-- put your configuration here
-			-- or don't, see the config section for
-			-- available options and defaults
-		}
 	})
 <
 
-PACKER                                        *build.nvim-installation-packer*
+PACKER                    *build.nvim-packer* *build.nvim-installation-packer*
 
 >lua
 	-- lua
 	use {
 		"cyuria/build.nvim",
-		config = function()
-			require('build').setup({
-				-- put your configuration here
-				-- or don't, see the config section for
-				-- available options and defaults
-			})
-		end
 	}
 <
 
@@ -107,30 +100,176 @@ By default `build.nvim` automatically sets the compiler with `:compiler`,
 which will itself set `'makeprg'` and `'errorformat'`. These work with `:make`
 and the quickfix list.
 
-NOTE FOR SOME BUILD SYSTEMS                           *build.nvim-usage-notes*
-                                         *build.nvim-cargo* *build.nvim-meson*
+By default this plugin is triggered on the `BufRead` and `DirChanged`
+autocommands. This can be changed as follows:
+>lua
+	-- only update on BufWrite
+	require('build').autocmds({ 'BufWrite' })
 
-Some build systems, i.e. meson and zig will need an extra argument, such as
-`:make compile` with meson or `:make build` with cargo and zig. This allows
-you more control, like running `:make test`.
+To unset all autocommands, simply pass an empty table.
+>lua
+	-- unset build.nvim autocommands
+	require('build').autocmds({})
 
-To override these, simply use the `zig_build` compiler instead of the
-autodetected `zig` compiler.
+You can then set autocommands as you like. For example:
+>lua
+	vim.api.nvim_create_autocommand({ 'BufRead' }, {
+		callback = function()
+			require('build').search()
+		end
+	})
+
+See also |build.nvim-configuration|
+
+Some build systems, such as meson and cargo will need an extra argument to run
+successfully. This is because the command line for those build systems doesn't
+have a default execution target, so you will need to specify what operation to
+run, such as `:make compile` with meson or `:make build` with cargo.
+
+If you want to avoid this, use a `build.sh` script, see |build.nvim-build.sh|.
+
+BUILD.SH                                                 *build.nvim-build.sh*
+
+When `build.nvim` detects a `build.sh` file, the build system is set to
+`build_sh`.
+
+This build system supercedes all other build systems (is checked for first),
+so it can be used to wrap another existing build system.
+
+The script is called with all arguments passed through, so `:make` will simply
+call the script with no arguments and `:make foo bar baz` will call `build.sh`
+with the arguemnts `foo`, `bar` and `baz` in that order.
+
+>vim
+	:make
+	:make foo
+	:make test
+
+CMAKE                                                       *build.nvim-cmake*
+
+When `build.nvim` detects a `CMakeLists.txt` file, the build system is set to
+CMake.
+
+CMake requires extra arguments to be passed.
+
+>vim
+	:make -B build/
+	:make --build build/
+
+CARGO                                                       *build.nvim-cargo*
+
+When `build.nvim` finds a `Cargo.toml` file, the build system is set to Cargo.
+
+Cargo requires extra arguments to be passed.
+
+>vim
+	:make clean
+	:make check
+	:make build
+	:make run
+	:make add serde --features=derive
+
+JUST                                                         *build.nvim-just*
+
+When `build.nvim` finds a `justfile` (or `Justfile`), the build system is set
+to Just.
+
+Just may take extra arguments to specify a target recipe.
+
+>vim
+	:make
+	:make -l
+	:make build
+	:make test
+
+MAKE                                                         *build.nvim-make*
+
+When `build.nvim` finds a `Makefile`, the build system is set to make. Make is
+special as it is Vim's default compiler and target for `:make`.
+
+Make may take extra arguemnts to specify a target.
+
+>vim
+	:make
+	:make build
+	:make clean
+	:make build -j 8
+	:make test
+
+MESON                                                       *build.nvim-meson*
+
+When `build.nvim` finds a `meson.build` file, the build system is set to
+Meson.
+
+Meson requires extra arguments to be passeed.
+
+>vim
+	:make setup build
+	:make compile -C build
+
+NINJA                                                       *build.nvim-ninja*
+
+When `build.nvim` finds a `build.ninja` file, the build system is set to
+Ninja.
+
+Ninja is often used as a backend for meta build systems, so if your project
+uses a build system not recognised by `build.nvim`, the compiler may be set to
+Ninja.
+
+Ninja may take extra arguments to specify an edge to build.
+
+>vim
+	:make
+	:make test
+
+NPM                                                           *build.nvim-npm`
+
+When `build.nvim` finds a `package.json` file, the build system is set to NPM.
+
+Often projects will contain a `package.json` file and not use NPM for
+building, so NPM is deprioritised here.
+
+NPM requires extra arguments to be passed, `makeprg` is set to `npm run $*`,
+so you will usually want to call something like `:make build`.
+
+>vim
+	:make build
+	:make test
+
+SETUPTOOLS              *build.nvim-setuptools* *build.nvim-python-setuptools*
+
+When `build.nvim` finds a `setup.py` file, the build system is set to
+Setuptools.
+
+>vim
+	:make
+
+ZIG                                                           *build.nvim-zig*
+
+When `build.nvim` finds a `build.zig` file, the build system is set to Zig
+(specifically `zig_build`, as bundled with NeoVim).
+
+Zig may take extra arguments to specify which step to run.
+
+>vim
+	:make
+	:make test
+	:make run
+	:make -Doptimize=ReleaseSmall
 
 ==============================================================================
 Configuration                                       *build.nvim-configuration*
 
+Configure `build.nvim` by setting `vim.g.build_nvim_options` or by calling
+`require('build').setup({...})`.
+
+The `setup()` call is a simple wrapper that sets the global variable and
+doesn't need to be called.
+
 `build.nvim` comes with the following options and defaults.
 
 >lua
-	require('build').setup({
-		-- Events to set the compiler on. Set this to {} to not
-		-- generate an autocommand for this
-		update_events = {
-			"DirChanged",
-			"BufRead",
-		},
-
+	vim.g.build_nvim_options = {
 		-- A list of marker files which indicate the parent directory
 		-- should be considered the project root
 		root = {
@@ -141,27 +280,34 @@ Configuration                                       *build.nvim-configuration*
 			"_darcs",
 			"package.json",
 		},
-		-- Extra marker files. Use this to avoid overwriting the
-		-- default markers
-		root_extra = {},
 
-		-- A list of marker files and compiler/build system association
+		-- A marker files and compiler/build system associations,
+		-- sorted by priority
 		compilers = {
-			["CMakeLists.txt"] = "cmake",
-			["Cargo.toml"] = "cargo",
-			["build.ninja"] = "ninja",
-			["build.zig"] = "zig",
-			["Justfile"] = "just",
-			["justfile"] = "just",
-			["meson.build"] = "meson",
-			["package.json"] = "npm",
-			["setup.py"] = "setuptools",
+			{
+				["build.sh"] = "build_sh",
+			},
+			{
+				["CMakeLists.txt"] = "cmake",
+				["Cargo.toml"] = "cargo",
+				["Justfile"] = "just",
+				["build.zig"] = "zig",
+				["justfile"] = "just",
+				["meson.build"] = "meson",
+				["setup.py"] = "setuptools",
+			},
+			{
+				["Makefile"] = "make",
+				["build.ninja"] = "ninja",
+				["package.json"] = "npm",
+			},
 		},
-		-- Extra marker files and compiler/build system association. Use this to avoid
-		-- overwriting the default markers
-		compilers_extra = {},
+
+		-- Deprecated
+		update_events = nil,
+		root_extra = nil,
+		compilers_extra = nil,
 	})
-<
 
 ==============================================================================
 Contributing                                         *build.nvim-contributing*
